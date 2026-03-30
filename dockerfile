@@ -6,11 +6,15 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV BASE_DIR="/config"
 
-# Installation des dépendances système
-# - git : pour cloner le dépôt GoogleFindMyTools
-# - chromium/chromium-driver : pour l'automatisation Selenium
-# - build-essential/libffi-dev : pour compiler certaines dépendances Python (ex: Frida, Cryptography)
+# Définition du répertoire de travail
+WORKDIR /app
+
+# Installation des dépendances Python (Placé avant l'installation système pour optimiser le cache)
+COPY requirements.txt .
+
+# Installation des paquets système, de Tini, compilation Python, puis nettoyage immédiat
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    tini \
     git \
     wget \
     gnupg \
@@ -20,20 +24,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium-driver \
     build-essential \
     libffi-dev \
+    && pip install --no-cache-dir -r requirements.txt \
+    && apt-get remove -y build-essential libffi-dev \
+    && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Définition du répertoire de travail
-WORKDIR /app
-
-# Installation des dépendances Python
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Copie du code source du middleware
-# Note : server.py est à la racine de votre dépôt GitHub
 COPY src/server.py .
-
-# Préparation du template pour la personnalisation automatique des scripts utilisateurs
 COPY src/ring_my_phone.py ./ring_my_phone.py.template
 
 # Création du point de montage pour la persistance Unraid
@@ -41,6 +38,9 @@ RUN mkdir /config
 
 # Exposition du port utilisé par Flask pour la skill Alexa
 EXPOSE 3000
+
+# Utilisation de Tini comme point d'entrée pour gérer correctement les signaux d'arrêt d'Unraid
+ENTRYPOINT ["/usr/bin/tini", "--"]
 
 # Commande de lancement
 CMD ["python", "server.py"]
