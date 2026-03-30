@@ -1,6 +1,7 @@
 # 📱 Find My Phone - Alexa Skill
 
 [![Unraid Ready](https://img.shields.io/badge/Unraid-Community%20Applications-orange.svg)](https://forums.unraid.net/topic/38582-announcement-community-applications/)
+[![Raspberry Pi / ARM64](https://img.shields.io/badge/Raspberry%20Pi-ARM64%20Ready-C51A4A?logo=raspberry-pi&logoColor=white)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/flask-%23000.svg?style=flat&logo=flask&logoColor=white)
@@ -15,8 +16,9 @@ A self-hosted **Alexa Skill middleware** designed specifically for the **Unraid*
 ## ✨ Features
 
 * **One-Click Install**: Fully compatible with Unraid's Community Applications (CA).
+* **Multi-Architecture Support**: Built for both `x86_64` (Standard PCs/Servers) and `ARM64` (Raspberry Pi, CasaOS, Mac M1/M2).
 * **100% Stateless & Automated**: The container automatically downloads tools, creates folders, and customizes your scripts using Environment Variables.
-* **Rock-Solid Stability (v1.2)**: Integrated Docker Healthcheck for continuous monitoring in Unraid, and locked the `GoogleFindMyTools` dependency to a specific stable commit (`4eaeb13`) to prevent upstream breaking changes.
+* **Rock-Solid Stability (v1.2)**: Integrated Docker Healthcheck for continuous monitoring in Unraid, and locked the `GoogleFindMyTools` dependency to a specific stable commit (`0003116`) to prevent upstream breaking changes.
 * **Secure & Reliable (v1.1)**: Built-in Amazon Signature Verification to reject unauthorized requests, and asynchronous background execution to prevent Alexa 8-second timeouts.
 * **Multi-Profile Support**: Easily manage different users (e.g., Richard, Lea) via isolated script execution.
 * **Headless Automation**: Pre-configured with `Chromium`, `chromedriver`, and `undetected-chromedriver`.
@@ -85,7 +87,7 @@ You need to create a custom Alexa Skill to receive your voice commands and forwa
 | `USERS` | Comma-separated list of users (e.g., richard,lea). | `richard,lea` |
 | `SECRET_[USER]` | The full JSON content of your locally generated `secrets.json` for that user (e.g., `SECRET_RICHARD`). | `None` |
 | `DEVICEID_[USER]` | The target Google device ID to ring for that user (e.g., `DEVICEID_RICHARD`). | `None` |
-| `TOOLS_VERSION` | Pinned `GoogleFindMyTools` version (Commit SHA) to ensure stability. | `4eaeb13` |
+| `TOOLS_VERSION` | Pinned `GoogleFindMyTools` version (Commit SHA) to ensure stability. | `0003116` |
 | `DEBUG_MODE` | Set to `true` to enable verbose logging. | `true` |
 | `PYTHONUNBUFFERED` | Ensures that Python logs are sent straight to the Docker console in real-time. | `1` |
 | `TZ` | Sets the timezone for the container logs. | `Europe/Paris` |
