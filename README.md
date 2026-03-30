@@ -1,4 +1,4 @@
-# 📱 Find My Phone - Alexa Skill (Unraid Edition)
+# 📱 Find My Phone - Alexa Skill
 
 [![Unraid Ready](https://img.shields.io/badge/Unraid-Community%20Applications-orange.svg)](https://forums.unraid.net/topic/38582-announcement-community-applications/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
