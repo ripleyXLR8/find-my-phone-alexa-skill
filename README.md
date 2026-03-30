@@ -22,6 +22,23 @@ A self-hosted **Alexa Skill middleware** designed specifically for the **Unraid*
 
 ---
 
+## 🔑 How to get your `secrets.json` & Device ID
+
+Because Google's authentication requires a graphical web browser (Chrome), **you must perform the initial login on your personal computer (Windows/Mac/Linux)** before setting up the Unraid Docker.
+
+**Step-by-step guide:**
+1. On your personal computer, download or clone the original [GoogleFindMyTools repository](https://github.com/leonboe1/GoogleFindMyTools).
+2. Open a terminal/command prompt in that folder and install the requirements:  
+   `pip install -r requirements.txt`
+3. Run the main script:  
+   `python main.py`
+4. A Google Chrome window will open. **Log in to the Google Account** associated with the phone you want to locate.
+5. Once logged in, look at your terminal. The script will list all your devices with their corresponding **Canonical IDs** (e.g., `691ee847-0000-2401-ab82-fc41166d2bf9`). **Copy this ID**; this is your `DEVICEID_[USER]`.
+6. In the tool's folder on your computer, a new directory named `Auth` has been created, containing a `secrets.json` file.
+7. **Open `secrets.json` with a text editor**, copy all the text inside, and paste it into the `SECRET_[USER]` variable in your Unraid template.
+
+---
+
 ## 🚀 Installation on Unraid
 
 ### 1. Prerequisites
@@ -32,7 +49,7 @@ A self-hosted **Alexa Skill middleware** designed specifically for the **Unraid*
 1.  Open your Unraid WebGUI and go to the **Apps** tab.
 2.  Search for `find-my-phone-alexa-skill`.
 3.  Click **Install**.
-4.  Configure the Environment Variables (see below) and verify the **AppData** mapping (default: `/mnt/user/appdata/alexa-findmyphone`).
+4.  Configure the Environment Variables (see below) using the data you gathered in the previous step.
 
 ---
 
