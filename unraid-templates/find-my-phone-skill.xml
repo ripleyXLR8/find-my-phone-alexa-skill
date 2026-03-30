@@ -2,6 +2,7 @@
 <Container version="2.0">
   <Name>Alexa-FindMyPhone</Name>
   <Repository>ghcr.io/ripleyxlr8/find-my-phone-alexa-skill:latest</Repository>
+  <Registry>https://github.com/ripleyXLR8/find-my-phone-alexa-skill/pkgs/container/find-my-phone-alexa-skill</Registry>
   <Network>bridge</Network>
   <Privileged>false</Privileged>
   <Support>https://github.com/ripleyXLR8/find-my-phone-alexa-skill/issues</Support>
@@ -10,14 +11,13 @@
     Middleware Alexa auto-hébergé permettant de localiser vos téléphones via l'outil GoogleFindMyTools.
 
     FONCTIONNEMENT :
-    - Gestion dynamique : Définissez vos utilisateurs dans la variable USERS.
-    - Auto-Installation : Le conteneur télécharge automatiquement la version de GoogleFindMyTools spécifiée.
-    - Injection Stateless : Les secrets de connexion (secrets.json) sont injectés via des variables d'environnement au démarrage.
+    Le conteneur télécharge automatiquement les outils Google, crée les dossiers, et personnalise vos scripts. C'est une approche 100% "stateless" : tout se configure via les paramètres ci-dessous sans avoir à éditer de fichiers manuellement.
 
     INSTRUCTIONS :
-    1. Définissez vos utilisateurs (ex: richard,lea).
-    2. Pour chaque utilisateur, ajoutez une variable d'environnement nommée SECRET_[NOM] (ex: SECRET_RICHARD) et collez-y l'intégralité du contenu JSON de votre fichier 'secrets.json' généré sur PC.
-    3. IMPORTANT : Placez votre script personnalisé 'ring_my_phone.py' dans le dossier correspondant de votre appdata (ex: /appdata/alexa-findmyphone/google-richard/) après le premier lancement.
+    1. Définissez vos utilisateurs (ex: richard,lea) dans la variable USERS.
+    2. Créez une variable SECRET_RICHARD contenant l'intégralité du JSON de votre secrets.json (obtenu sur PC).
+    3. Créez une variable DEVICEID_RICHARD contenant l'ID de l'appareil à faire sonner.
+    Répétez les étapes 2 et 3 pour chaque utilisateur. Le conteneur s'occupe du reste au démarrage !
   </Overview>
   <Category>HomeAutomation: Status:Stable</Category>
   <WebUI/>
@@ -25,13 +25,15 @@
   
   <Config Name="Port Skill Alexa" Target="3000" Default="3000" Mode="tcp" Description="Port interne utilisé par le serveur Flask" Type="Port" Display="always" Required="true" Mask="false"/>
 
-  <Config Name="Chemin AppData" Target="/config" Default="/mnt/user/appdata/alexa-findmyphone" Description="Stockage pour les outils clonés et les scripts de sonnerie" Type="Path" Display="always" Required="true" Mask="false"/>
+  <Config Name="Chemin AppData" Target="/config" Default="/mnt/user/appdata/alexa-findmyphone" Description="Stockage pour les outils clonés et la configuration générée" Type="Path" Display="always" Required="true" Mask="false"/>
 
   <Config Name="Liste des utilisateurs" Target="USERS" Default="richard,lea" Description="Noms séparés par une virgule (ex: user1,user2)" Type="Variable" Display="always" Required="true" Mask="false"/>
   
   <Config Name="Version GoogleFindMyTools" Target="TOOLS_VERSION" Default="main" Description="Branche, Tag ou Commit SHA du dépôt GitHub original" Type="Variable" Display="always" Required="false" Mask="false"/>
 
   <Config Name="Secret Utilisateur (Exemple)" Target="SECRET_RICHARD" Default="" Description="Contenu JSON du fichier secrets.json pour l'utilisateur 'richard'. Créez d'autres variables SECRET_[NOM] si nécessaire." Type="Variable" Display="always" Required="false" Mask="true"/>
+
+  <Config Name="Device ID Utilisateur (Exemple)" Target="DEVICEID_RICHARD" Default="" Description="ID de l'appareil Google à faire sonner pour 'richard' (ex: 691ee847-0000-2401-ab82-fc41166d2bf9)." Type="Variable" Display="always" Required="false" Mask="false"/>
 
   <Config Name="Timezone" Target="TZ" Default="Europe/Paris" Description="Fuseau horaire du conteneur" Type="Variable" Display="advanced" Required="false" Mask="false"/>
   
