@@ -22,7 +22,7 @@ A self-hosted **Alexa Skill middleware** designed specifically for the **Unraid*
 
 ---
 
-## 🔑 How to get your `secrets.json` & Device ID
+## 🔑 Step 1: Get your `secrets.json` & Device ID
 
 Because Google's authentication requires a graphical web browser (Chrome), **you must perform the initial login on your personal computer (Windows/Mac/Linux)** before setting up the Unraid Docker.
 
@@ -35,29 +35,46 @@ Because Google's authentication requires a graphical web browser (Chrome), **you
 4. A Google Chrome window will open. **Log in to the Google Account** associated with the phone you want to locate.
 5. Once logged in, look at your terminal. The script will list all your devices with their corresponding **Canonical IDs** (e.g., `691ee847-0000-2401-ab82-fc41166d2bf9`). **Copy this ID**; this is your `DEVICEID_[USER]`.
 6. In the tool's folder on your computer, a new directory named `Auth` has been created, containing a `secrets.json` file.
-7. **Open `secrets.json` with a text editor**, copy all the text inside, and paste it into the `SECRET_[USER]` variable in your Unraid template.
+7. **Open `secrets.json` with a text editor**, copy all the text inside, and keep it ready for the Unraid template (`SECRET_[USER]`).
 
 ---
 
-## 🚀 Installation on Unraid
+## 🎙️ Step 2: Create the Alexa Skill
 
-### 1. Prerequisites
-* An **Alexa Skill** created on the [Amazon Developer Console](https://developer.amazon.com/alexa/console/ask).
-* A secure HTTPS endpoint pointing to your Unraid server on port `3000`. **We highly recommend using a Cloudflare Tunnel** (see the Network section below).
+You need to create a custom Alexa Skill to receive your voice commands and forward them to your Unraid server.
 
-### 2. Deployment
+**Step-by-step guide:**
+1. Log in to the [Amazon Alexa Developer Console](https://developer.amazon.com/alexa/console/ask).
+2. Click **Create Skill**.
+   * **Name**: `Find My Phone` (or anything you prefer).
+   * **Primary locale**: Choose your language (English or French).
+   * **Experience, Model, Hosting**: Select `Other` > `Custom` > `Provision your own`.
+   * Click **Next**, then choose **Start from Scratch**.
+3. **Import the Interaction Model**:
+   * In the left menu, go to **Interaction Model > JSON Editor**.
+   * Drag and drop (or paste the content of) the `alexa-interaction-model-en.json` (or the `-fr` version) provided in this repository.
+   * Click **Save Model**.
+4. **Customize your names (Crucial!)**:
+   * In the left menu, go to **Assets > Slot Types > PHONE_OWNER**.
+   * Replace the dummy values (`richard`, `lea`) with the **actual first names** of your family members. This step is mandatory for Alexa to understand the names you speak!
+   * Click **Build Skill** (this takes a minute).
+5. **Configure the Endpoint**:
+   * In the left menu, go to **Endpoint**.
+   * Select **HTTPS**.
+   * In the Default Region field, enter your public secure URL (e.g., `https://alexa.yourdomain.com` - *see Step 4 below*).
+   * In the SSL dropdown, select: *"My development endpoint is a sub-domain of a domain that has a wildcard certificate from a certificate authority"*.
+   * Click **Save Endpoints**.
+
+---
+
+## 🚀 Step 3: Installation on Unraid
+
 1.  Open your Unraid WebGUI and go to the **Apps** tab.
 2.  Search for `find-my-phone-alexa-skill`.
 3.  Click **Install**.
-4.  Configure the Environment Variables (see below) using the data you gathered in the previous step.
-
----
-
-## ⚙️ Configuration
+4.  Configure the Environment Variables (see below) using the data you gathered in Step 1.
 
 ### Environment Variables
-
-The following environment variables can be configured within the Unraid Docker settings to customize the behavior of the middleware:
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
@@ -65,14 +82,13 @@ The following environment variables can be configured within the Unraid Docker s
 | `SECRET_[USER]` | The full JSON content of your locally generated `secrets.json` for that user (e.g., `SECRET_RICHARD`). | `None` |
 | `DEVICEID_[USER]` | The target Google device ID to ring for that user (e.g., `DEVICEID_RICHARD`). | `None` |
 | `TOOLS_VERSION` | `GoogleFindMyTools` version to clone (branch, tag, or SHA). | `main` |
-| `DEBUG_MODE` | Set to `true` to enable verbose logging for the Alexa Skill and Flask server. | `true` |
+| `DEBUG_MODE` | Set to `true` to enable verbose logging. | `true` |
 | `PYTHONUNBUFFERED` | Ensures that Python logs are sent straight to the Docker console in real-time. | `1` |
-| `TZ` | Sets the timezone for the container logs (e.g., `Europe/Paris`). | `Europe/Paris` |
-| `BASE_DIR` | The internal path used for script discovery. **Note:** This is mapped to `/config` by default. | `/config` |
+| `TZ` | Sets the timezone for the container logs. | `Europe/Paris` |
 
 ---
 
-## 🌐 Network & Connectivity (Cloudflare Tunnel Recommended)
+## 🌐 Step 4: Network & Connectivity (Cloudflare Tunnel Recommended)
 
 Amazon Alexa **requires** a valid HTTPS endpoint to communicate with your self-hosted skill. 
 
@@ -85,7 +101,7 @@ Instead of opening ports on your router, we strongly recommend using a **Cloudfl
 4. Set the **Service** to route to your container:
    * **Type:** `HTTP`
    * **URL:** `<Your-Unraid-IP>:3000` (e.g., `192.168.1.100:3000`)
-5. In the Amazon Alexa Developer Console, set your endpoint to `https://alexa.yourdomain.com`.
+5. Make sure this matches the Endpoint URL you pasted in the Alexa Developer Console in Step 2.
 
 *Note: You can also use Nginx Proxy Manager, Traefik, or any other reverse proxy that provides SSL termination.*
 
@@ -95,7 +111,7 @@ Instead of opening ports on your router, we strongly recommend using a **Cloudfl
 
 This project leverages several powerful libraries to ensure reliable communication and device localization:
 
-* **Core**: Python 3.11 with `Flask` and the `ask-sdk-core` / `ask-sdk-model` for Alexa Skill interaction.
+* **Core**: Python 3.11 with `Flask` and the `ask-sdk-core` / `ask-sdk-model`.
 * **Automation**: `selenium` and `undetected-chromedriver` are included to navigate Google services in headless mode.
 * **Tools**: `gpsoauth` for Google Play Services authentication and `beautifulsoup4` for web parsing.
 * **Advanced**: `frida`, `cryptography`, and `pycryptodomex` for system-level instrumentation and secure data handling.
