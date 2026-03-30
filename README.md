@@ -15,10 +15,11 @@ A self-hosted **Alexa Skill middleware** designed specifically for the **Unraid*
 ## ✨ Features
 
 * **One-Click Install**: Fully compatible with Unraid's Community Applications (CA).
-* **Headless Automation**: Pre-configured with `Chromium`, `chromedriver`, and `undetected-chromedriver` to handle complex Google logins.
-* **Multi-Profile Support**: Easily manage different users (e.g., Richard, Lea) via isolated script execution.
 * **100% Stateless & Automated**: The container automatically downloads tools, creates folders, and customizes your scripts using Environment Variables.
-* **Real-time Logging**: Optimized for Unraid's Docker logs with unbuffered Python output.
+* **Secure & Reliable (v1.1)**: Built-in Amazon Signature Verification to reject unauthorized requests, and asynchronous background execution to prevent Alexa 8-second timeouts.
+* **Multi-Profile Support**: Easily manage different users (e.g., Richard, Lea) via isolated script execution.
+* **Headless Automation**: Pre-configured with `Chromium`, `chromedriver`, and `undetected-chromedriver`.
+* **Graceful Shutdown**: Utilizes `tini` for instant and clean container stops on Unraid.
 
 ---
 
@@ -50,15 +51,16 @@ You need to create a custom Alexa Skill to receive your voice commands and forwa
    * **Primary locale**: Choose your language (English or French).
    * **Experience, Model, Hosting**: Select `Other` > `Custom` > `Provision your own`.
    * Click **Next**, then choose **Start from Scratch**.
-3. **Import the Interaction Model**:
+3. **Copy your Skill ID**: In the console, find your Skill ID (it looks like `amzn1.ask.skill.xxxx...`). **Copy it**, you will need it for the `ALEXA_SKILL_ID` variable in Unraid.
+4. **Import the Interaction Model**:
    * In the left menu, go to **Interaction Model > JSON Editor**.
-   * Drag and drop (or paste the content of) the `alexa-interaction-model-en.json` (or the `-fr` version) provided in this repository.
+   * Paste the content of the `alexa_speech_assets/US.json` (or the `FR.json` version) provided in this repository.
    * Click **Save Model**.
-4. **Customize your names (Crucial!)**:
+5. **Customize your names (Crucial!)**:
    * In the left menu, go to **Assets > Slot Types > PHONE_OWNER**.
    * Replace the dummy values (`richard`, `lea`) with the **actual first names** of your family members. This step is mandatory for Alexa to understand the names you speak!
    * Click **Build Skill** (this takes a minute).
-5. **Configure the Endpoint**:
+6. **Configure the Endpoint**:
    * In the left menu, go to **Endpoint**.
    * Select **HTTPS**.
    * In the Default Region field, enter your public secure URL (e.g., `https://alexa.yourdomain.com` - *see Step 4 below*).
@@ -72,12 +74,13 @@ You need to create a custom Alexa Skill to receive your voice commands and forwa
 1.  Open your Unraid WebGUI and go to the **Apps** tab.
 2.  Search for `find-my-phone-alexa-skill`.
 3.  Click **Install**.
-4.  Configure the Environment Variables (see below) using the data you gathered in Step 1.
+4.  Configure the Environment Variables (see below) using the data you gathered in Step 1 and Step 2.
 
 ### Environment Variables
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
+| `ALEXA_SKILL_ID` | **[NEW in v1.1]** Your Alexa Skill ID (`amzn1.ask.skill...`). Required for request signature verification & security. | `None` |
 | `USERS` | Comma-separated list of users (e.g., richard,lea). | `richard,lea` |
 | `SECRET_[USER]` | The full JSON content of your locally generated `secrets.json` for that user (e.g., `SECRET_RICHARD`). | `None` |
 | `DEVICEID_[USER]` | The target Google device ID to ring for that user (e.g., `DEVICEID_RICHARD`). | `None` |
@@ -111,7 +114,7 @@ Instead of opening ports on your router, we strongly recommend using a **Cloudfl
 
 This project leverages several powerful libraries to ensure reliable communication and device localization:
 
-* **Core**: Python 3.11 with `Flask` and the `ask-sdk-core` / `ask-sdk-model`.
+* **Core**: Python 3.11 with `Flask`, `tini`, and the `ask-sdk-flask` for secure Alexa Skill interaction.
 * **Automation**: `selenium` and `undetected-chromedriver` are included to navigate Google services in headless mode.
 * **Tools**: `gpsoauth` for Google Play Services authentication and `beautifulsoup4` for web parsing.
 * **Advanced**: `frida`, `cryptography`, and `pycryptodomex` for system-level instrumentation and secure data handling.
@@ -124,31 +127,23 @@ A huge thank you to **Leon Böttger** ([@leonboe1](https://github.com/leonboe1))
 
 ---
 
-## 🤝 Contributing
+## 📄 License
 
-Contributions are welcome! If you have suggestions for improvements or new features:
-
-1.  **Fork** the project.
-2.  Create your **Feature Branch** (`git checkout -b feature/AmazingFeature`).
-3.  **Commit** your changes (`git commit -m 'Add some AmazingFeature'`).
-4.  **Push** to the branch (`git push origin feature/AmazingFeature`).
-5.  Open a **Pull Request**.
+This project is distributed under the **MIT License**. See the `LICENSE` file for more details.
 
 ---
 
-## 🤖 Vibe Coding & Credits
+## 🤖 Vibe Coding
 
 **This project is a pure "Vibe Coding" experiment.**
 
 It was entirely architected, debugged, and refined through a continuous natural language dialogue with **Google Gemini**. No manual coding was performed; the human acted as the conductor, and the AI as the expert developer.
 
 ---
-**Enjoying this project?** If this tool helps you tame your Home Cinema, consider supporting the updates!  
+
+## ☕ Want to support me?
+
+**Enjoying this project?** If this tool saves you from tearing the house apart looking for your phone, consider supporting the updates!  
 [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/ripleyxlr8)
 
-## 📄 License
-
-This project is distributed under the **MIT License**. See the `LICENSE` file for more details.
-
----
-*Developed for the Unraid community to simplify home automation.*
+<p align="center"><i>Developed for the Unraid community to simplify home automation.</i></p>
