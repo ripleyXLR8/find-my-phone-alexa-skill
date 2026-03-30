@@ -6,10 +6,9 @@ on:
     # Ne déclenche pas le build pour des changements mineurs de doc
     paths-ignore:
       - 'README.md'
-      - 'unraid-template.xml'
-      - 'icon.png'
+      - 'unraid-templates/**'
+      - 'find-my-phone-icon.png'
       - '.gitignore'
-
 env:
   REGISTRY: ghcr.io
   # Utilise le nom du dépôt (ex: ripleyxlr8/find-my-phone-alexa-skill)
