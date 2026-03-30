@@ -4,6 +4,7 @@ import subprocess
 import sys
 import json
 import shutil
+import threading # <-- NOUVEL IMPORT POUR L'ASYNCHRONE
 from flask import Flask, request
 from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.dispatch_components import AbstractRequestHandler, AbstractExceptionHandler
@@ -105,6 +106,31 @@ def initialize_environment():
 # Lancement de l'initialisation au chargement du script
 initialize_environment()
 
+
+# --- NOUVELLE FONCTION : Exécution en arrière-plan ---
+def run_ring_script(config, target_key):
+    """Exécute le script de localisation sans bloquer le serveur Flask."""
+    logger.info(f"▶️ Début de la tâche en arrière-plan pour {target_key}")
+    try:
+        process = subprocess.run(
+            [sys.executable, config["script"]], 
+            cwd=config["cwd"],
+            capture_output=True,
+            text=True,
+            timeout=45
+        )
+        
+        if process.returncode == 0:
+            logger.info(f"✅ Tâche terminée avec succès pour {target_key}.")
+            logger.debug(f"Sortie script : {process.stdout}")
+        else:
+            logger.error(f"❌ Erreur script ({target_key}) : {process.stderr}")
+    except subprocess.TimeoutExpired:
+        logger.error(f"⏱️ Le script pour {target_key} a dépassé le délai de 45 secondes.")
+    except Exception as e:
+        logger.exception(f"💥 Erreur critique du sous-processus pour {target_key}")
+
+
 class LaunchRequestHandler(AbstractRequestHandler):
     """Accueil de la skill : énumère les utilisateurs configurés."""
     def can_handle(self, handler_input):
@@ -146,27 +172,15 @@ class FindPhoneIntentHandler(AbstractRequestHandler):
             
             if not os.path.exists(script_path):
                 return handler_input.response_builder.speak(
-                    f"Erreur : le script ring_my_phone.py est absent pour {target_key}."
+                    f"Erreur : le script de sonnerie est absent pour {target_key}."
                 ).response
             
-            try:
-                # Exécution du script de localisation
-                process = subprocess.run(
-                    [sys.executable, config["script"]], 
-                    cwd=config["cwd"],
-                    capture_output=True,
-                    text=True,
-                    timeout=45
-                )
-                
-                if process.returncode == 0:
-                    speak_output = f"C'est fait, le téléphone de {target_key} sonne."
-                else:
-                    logger.error(f"Erreur script ({target_key}) : {process.stderr}")
-                    speak_output = f"Le script a rencontré une erreur technique pour {target_key}."
-            except Exception as e:
-                logger.exception("Erreur lors de l'exécution du sous-processus")
-                speak_output = "Désolé, je n'ai pas pu lancer la commande sur le serveur."
+            # --- MODIFICATION : Lancement asynchrone (Threading) ---
+            # On lance le thread et on n'attend pas sa réponse
+            threading.Thread(target=run_ring_script, args=(config, target_key)).start()
+            
+            # Réponse vocale immédiate pour Alexa (< 1 seconde)
+            speak_output = f"C'est fait, je lance la recherche du téléphone de {target_key}."
         else:
             speak_output = f"Désolé, l'utilisateur {target_key} n'est pas configuré sur ce serveur."
             
