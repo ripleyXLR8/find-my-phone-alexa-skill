@@ -1,0 +1,60 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "trouve mon téléphone",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "FindPhoneIntent",
+                    "slots": [
+                        {
+                            "name": "Owner",
+                            "type": "PHONE_OWNER"
+                        }
+                    ],
+                    "samples": [
+                        "fais sonner le téléphone de {Owner}",
+                        "trouve le portable de {Owner}",
+                        "où est le téléphone de {Owner}",
+                        "cherche {Owner}",
+                        "fais sonner mon téléphone",
+                        "trouve mon portable",
+                        "il est où le téléphone de {Owner}"
+                    ]
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                }
+            ],
+            "types": [
+                {
+                    "name": "PHONE_OWNER",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "lea"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "richard"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
