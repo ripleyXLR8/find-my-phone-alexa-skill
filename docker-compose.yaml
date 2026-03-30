@@ -2,7 +2,7 @@ services:
   alexa-findmyphone:
     container_name: alexa-findmyphone
     # Remplacez par le nom de votre image une fois publiée ou utilisez '.' pour un build local
-    image: ton-dockerhub-user/alexa-findmyphone:latest 
+    image: ghcr.io/ripleyxlr8/find-my-phone-alexa-skill:latest
     restart: unless-stopped
     
     volumes:
