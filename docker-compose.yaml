@@ -1,0 +1,36 @@
+services:
+  alexa-findmyphone:
+    container_name: alexa-findmyphone
+    # Remplacez par le nom de votre image une fois publiée ou utilisez '.' pour un build local
+    image: ton-dockerhub-user/alexa-findmyphone:latest 
+    restart: unless-stopped
+    
+    volumes:
+      # On mappe tout le dossier appdata vers /config
+      - /mnt/user/appdata/alexa-findmyphone:/config
+      
+    environment:
+      - TZ=Europe/Paris
+      - PYTHONUNBUFFERED=1
+      - DEBUG_MODE=true
+      
+      # --- CONFIGURATION DYNAMIQUE ---
+      # Liste des utilisateurs séparés par une virgule
+      - USERS=USERA,USERB
+      
+      # Version du dépôt GoogleFindMyTools (main, tag, ou commit SHA)
+      - TOOLS_VERSION=main
+      
+      # Contenu JSON de vos fichiers secrets.json respectifs
+      # Note : veillez à bien échapper les guillemets si nécessaire ou utilisez des variables d'env séparées
+      - SECRET_USERA={"aas_token": "...", "fcm_credentials": {...}}
+      - SECRET_USERB={"aas_token": "...", "fcm_credentials": {...}}
+      
+    networks:
+      br0:
+        ipv4_address: 192.168.100.14
+
+networks:
+  br0:
+    name: br0
+    external: true
