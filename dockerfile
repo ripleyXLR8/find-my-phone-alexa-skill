@@ -26,16 +26,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Installation des dépendances Python
-# On copie le fichier requirements.txt [cite: 1]
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copie du code source du middleware (votre serveur Flask)
-# On suppose que server.py est dans un dossier local 'src/'
-COPY src/server.py .
+# Copie du code source du middleware
+# Note : server.py est à la racine de votre dépôt GitHub
+COPY server.py .
+
+# Préparation du template pour la personnalisation automatique des scripts utilisateurs
+COPY ring_my_phone.py ./ring_my_phone.py.template
 
 # Création du point de montage pour la persistance Unraid
-# C'est ici que les dossiers utilisateurs et les secrets seront créés
 RUN mkdir /config
 
 # Exposition du port utilisé par Flask pour la skill Alexa
