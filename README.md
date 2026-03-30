@@ -136,6 +136,16 @@ Contributions are welcome! If you have suggestions for improvements or new featu
 
 ---
 
+## 🤖 Vibe Coding & Credits
+
+**This project is a pure "Vibe Coding" experiment.**
+
+It was entirely architected, debugged, and refined through a continuous natural language dialogue with **Google Gemini**. No manual coding was performed; the human acted as the conductor, and the AI as the expert developer.
+
+---
+**Enjoying this project?** If this tool helps you tame your Home Cinema, consider supporting the updates!  
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/ripleyxlr8)
+
 ## 📄 License
 
 This project is distributed under the **MIT License**. See the `LICENSE` file for more details.
