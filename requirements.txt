@@ -1,6 +1,7 @@
 flask
 ask-sdk-core
 ask-sdk-model
+ask-sdk-flask
 undetected-chromedriver>=3.5.5
 selenium>=4.27.1
 gpsoauth>=1.1.1
