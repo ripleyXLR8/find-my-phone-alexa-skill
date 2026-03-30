@@ -102,6 +102,12 @@ This project leverages several powerful libraries to ensure reliable communicati
 
 ---
 
+## 🙏 Special Thanks & Credits
+
+A huge thank you to **Leon Böttger** ([@leonboe1](https://github.com/leonboe1)) for his incredible work creating the core [GoogleFindMyTools](https://github.com/leonboe1/GoogleFindMyTools) project. This Alexa Skill middleware wouldn't be possible without his extensive reverse-engineering of the Google Find My Device API. 
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! If you have suggestions for improvements or new features:
