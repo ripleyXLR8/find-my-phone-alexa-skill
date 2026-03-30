@@ -2,7 +2,7 @@
 
 [![Unraid Ready](https://img.shields.io/badge/Unraid-Community%20Applications-orange.svg)](https://forums.unraid.net/topic/38582-announcement-community-applications/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Python](https://img.shields.io/badge/Python-3.9-blue?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/flask-%23000.svg?style=flat&logo=flask&logoColor=white)
 ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=flat)
 ![Vibe Coding](https://img.shields.io/badge/Built%20with-Google%20Gemini-8E75B2)
@@ -17,6 +17,7 @@ A self-hosted **Alexa Skill middleware** designed specifically for the **Unraid*
 * **One-Click Install**: Fully compatible with Unraid's Community Applications (CA).
 * **Headless Automation**: Pre-configured with `Chromium`, `chromedriver`, and `undetected-chromedriver` to handle complex Google logins.
 * **Multi-Profile Support**: Easily manage different users (e.g., Richard, Lea) via isolated script execution.
+* **100% Stateless & Automated**: The container automatically downloads tools, creates folders, and customizes your scripts using Environment Variables.
 * **Real-time Logging**: Optimized for Unraid's Docker logs with unbuffered Python output.
 
 ---
@@ -31,22 +32,10 @@ A self-hosted **Alexa Skill middleware** designed specifically for the **Unraid*
 1.  Open your Unraid WebGUI and go to the **Apps** tab.
 2.  Search for `find-my-phone-alexa-skill`.
 3.  Click **Install**.
-4.  Verify the **AppData** mapping (default: `/mnt/user/appdata/alexa-findmyphone`).
+4.  Configure the Environment Variables (see below) and verify the **AppData** mapping (default: `/mnt/user/appdata/alexa-findmyphone`).
 
-### 3. Folder Structure
-The container looks for your local scripts in the `/config` directory. You **must** organize your scripts in your AppData folder as follows:
+---
 
-```text
-/mnt/user/appdata/alexa-findmyphone/
-├── google-richard/
-│   └── ring_my_phone.py
-└── google-lea/
-    └── ring_my_phone.py
-```
-
-Voici la suite et la fin du fichier README.md en format Markdown, optimisée pour ton dépôt GitHub, en commençant par la section Configuration :
-
-Markdown
 ## ⚙️ Configuration
 
 ### Environment Variables
@@ -55,6 +44,10 @@ The following environment variables can be configured within the Unraid Docker s
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
+| `USERS` | Comma-separated list of users (e.g., richard,lea). | `richard,lea` |
+| `SECRET_[USER]` | The full JSON content of your locally generated `secrets.json` for that user (e.g., `SECRET_RICHARD`). | `None` |
+| `DEVICEID_[USER]` | The target Google device ID to ring for that user (e.g., `DEVICEID_RICHARD`). | `None` |
+| `TOOLS_VERSION` | `GoogleFindMyTools` version to clone (branch, tag, or SHA). | `main` |
 | `DEBUG_MODE` | Set to `true` to enable verbose logging for the Alexa Skill and Flask server. | `true` |
 | `PYTHONUNBUFFERED` | Ensures that Python logs are sent straight to the Docker console in real-time. | `1` |
 | `TZ` | Sets the timezone for the container logs (e.g., `Europe/Paris`). | `Europe/Paris` |
