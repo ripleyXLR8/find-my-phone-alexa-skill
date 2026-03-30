@@ -16,6 +16,7 @@ A self-hosted **Alexa Skill middleware** designed specifically for the **Unraid*
 
 * **One-Click Install**: Fully compatible with Unraid's Community Applications (CA).
 * **100% Stateless & Automated**: The container automatically downloads tools, creates folders, and customizes your scripts using Environment Variables.
+* **Rock-Solid Stability (v1.2)**: Integrated Docker Healthcheck for continuous monitoring in Unraid, and locked the `GoogleFindMyTools` dependency to a specific stable commit (`4eaeb13`) to prevent upstream breaking changes.
 * **Secure & Reliable (v1.1)**: Built-in Amazon Signature Verification to reject unauthorized requests, and asynchronous background execution to prevent Alexa 8-second timeouts.
 * **Multi-Profile Support**: Easily manage different users (e.g., Richard, Lea) via isolated script execution.
 * **Headless Automation**: Pre-configured with `Chromium`, `chromedriver`, and `undetected-chromedriver`.
@@ -84,7 +85,7 @@ You need to create a custom Alexa Skill to receive your voice commands and forwa
 | `USERS` | Comma-separated list of users (e.g., richard,lea). | `richard,lea` |
 | `SECRET_[USER]` | The full JSON content of your locally generated `secrets.json` for that user (e.g., `SECRET_RICHARD`). | `None` |
 | `DEVICEID_[USER]` | The target Google device ID to ring for that user (e.g., `DEVICEID_RICHARD`). | `None` |
-| `TOOLS_VERSION` | `GoogleFindMyTools` version to clone (branch, tag, or SHA). | `main` |
+| `TOOLS_VERSION` | Pinned `GoogleFindMyTools` version (Commit SHA) to ensure stability. | `4eaeb13` |
 | `DEBUG_MODE` | Set to `true` to enable verbose logging. | `true` |
 | `PYTHONUNBUFFERED` | Ensures that Python logs are sent straight to the Docker console in real-time. | `1` |
 | `TZ` | Sets the timezone for the container logs. | `Europe/Paris` |
@@ -114,7 +115,7 @@ Instead of opening ports on your router, we strongly recommend using a **Cloudfl
 
 This project leverages several powerful libraries to ensure reliable communication and device localization:
 
-* **Core**: Python 3.11 with `Flask`, `tini`, and the `ask-sdk-flask` for secure Alexa Skill interaction.
+* **Core**: Python 3.11 with `Flask`, `tini`, and the `flask-ask-sdk` for secure Alexa Skill interaction.
 * **Automation**: `selenium` and `undetected-chromedriver` are included to navigate Google services in headless mode.
 * **Tools**: `gpsoauth` for Google Play Services authentication and `beautifulsoup4` for web parsing.
 * **Advanced**: `frida`, `cryptography`, and `pycryptodomex` for system-level instrumentation and secure data handling.
@@ -133,7 +134,7 @@ This project is distributed under the **MIT License**. See the `LICENSE` file fo
 
 ---
 
-## 🤖 Vibe Coding
+## 🤖 Vibe Coding & Credits
 
 **This project is a pure "Vibe Coding" experiment.**
 
