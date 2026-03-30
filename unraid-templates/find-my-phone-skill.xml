@@ -1,8 +1,7 @@
 <?xml version="1.0"?>
 <Container version="2.0">
   <Name>Alexa-FindMyPhone</Name>
-  <Repository>TON_USER_DOCKERHUB/alexa-findmyphone:latest</Repository>
-  <Registry>https://hub.docker.com/r/TON_USER_DOCKERHUB/alexa-findmyphone/</Registry>
+  <Repository>ghcr.io/ripleyxlr8/find-my-phone-alexa-skill:latest</Repository>
   <Network>bridge</Network>
   <Privileged>false</Privileged>
   <Support>https://github.com/ripleyXLR8/find-my-phone-alexa-skill/issues</Support>
