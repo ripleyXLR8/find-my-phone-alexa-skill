@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import json
+import shutil
 from flask import Flask, request
 from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.dispatch_components import AbstractRequestHandler, AbstractExceptionHandler
@@ -11,19 +12,19 @@ from ask_sdk_model import RequestEnvelope
 from ask_sdk_core.serialize import DefaultSerializer
 
 # --- CONFIGURATION DYNAMIQUE ---
-# BASE_DIR pointe vers /config, mappé au dossier appdata d'Unraid
+# BASE_DIR pointe vers /config, mappé au dossier appdata d'Unraid [cite: 1]
 BASE_DIR = os.getenv("BASE_DIR", "/config")
-# Liste des utilisateurs (ex: "richard,lea")
+# Liste des utilisateurs (ex: "richard,lea") [cite: 1]
 USERS_ENV = os.getenv("USERS", "richard,lea")
 USERS_LIST = [u.strip().lower() for u in USERS_ENV.split(",")]
-# Version de l'outil (branche, tag ou commit SHA)
+# Version de l'outil (branche, tag ou commit SHA) [cite: 1]
 TOOLS_VERSION = os.getenv("TOOLS_VERSION", "main")
 REPO_URL = "https://github.com/leonboe1/GoogleFindMyTools.git"
 
-# Dictionnaire global pour stocker les chemins d'exécution
+# Dictionnaire global pour stocker les chemins d'exécution [cite: 1]
 PATHS = {}
 
-# CONFIGURATION LOGGING
+# CONFIGURATION LOGGING [cite: 1]
 logging.basicConfig(
     level=logging.DEBUG, 
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -32,50 +33,71 @@ logger = logging.getLogger("AlexaSkill")
 logger.setLevel(logging.DEBUG)
 
 def initialize_environment():
-    """Initialise les dossiers, télécharge les outils et injecte les secrets."""
+    """Initialise les dossiers, outils, secrets et personnalise les scripts."""
+    template_path = "/app/ring_my_phone.py.template"
+
     for user in USERS_LIST:
         user_dir = os.path.join(BASE_DIR, f"google-{user}")
         auth_dir = os.path.join(user_dir, "Auth")
         
-        # 1. Création des répertoires de base
+        # 1. Création des répertoires de base [cite: 1]
         os.makedirs(auth_dir, exist_ok=True)
         
-        # 2. Récupération automatique de l'outil GoogleFindMyTools
+        # 2. Récupération automatique de l'outil GoogleFindMyTools [cite: 1]
         if not os.path.exists(os.path.join(user_dir, ".git")):
             logger.info(f"📥 Téléchargement de GoogleFindMyTools pour {user}...")
             try:
-                # Clone du dépôt
+                # Clone du dépôt [cite: 1]
                 subprocess.run(["git", "clone", REPO_URL, user_dir], check=True)
-                # Passage à la version spécifique (TOOLS_VERSION)
+                # Passage à la version spécifique (TOOLS_VERSION) [cite: 1]
                 subprocess.run(["git", "checkout", TOOLS_VERSION], cwd=user_dir, check=True)
                 logger.info(f"✅ Outil installé en version '{TOOLS_VERSION}' pour {user}")
             except subprocess.CalledProcessError as e:
                 logger.error(f"❌ Erreur lors de la récupération Git pour {user}: {e}")
 
-        # 3. Injection du secret depuis la variable d'environnement (ex: SECRET_RICHARD)
+        # 3. Injection du secret depuis la variable d'environnement (ex: SECRET_RICHARD) [cite: 1]
         secret_env_name = f"SECRET_{user.upper()}"
         secret_content = os.getenv(secret_env_name)
         
         if secret_content:
             try:
-                # Validation et écriture du JSON
+                # Validation et écriture du JSON [cite: 1]
                 json_data = json.loads(secret_content)
                 secret_file_path = os.path.join(auth_dir, "secrets.json")
                 with open(secret_file_path, "w") as f:
                     json.dump(json_data, f)
                 logger.info(f"🔑 Secret injecté avec succès pour {user}")
-            except json.JSONDecodeError:
-                logger.error(f"❌ La variable {secret_env_name} contient un JSON invalide.")
-        else:
-            logger.warning(f"⚠️ Variable {secret_env_name} manquante.")
+            except Exception as e:
+                logger.error(f"❌ Erreur lors de l'écriture du secret pour {user}: {e}")
 
-        # Enregistrement du chemin pour Alexa
+        # 4. Personnalisation de ring_my_phone.py avec l'ID d'appareil
+        device_id = os.getenv(f"DEVICEID_{user.upper()}")
+        script_dest = os.path.join(user_dir, "ring_my_phone.py")
+        
+        if device_id and os.path.exists(template_path):
+            try:
+                with open(template_path, "r") as t:
+                    content = t.read()
+                
+                # Remplacement du marqueur par l'ID réel configuré
+                custom_content = content.replace('TARGET_DEVICE_ID = "REPLACE_ME_DEVICE_ID"', 
+                                               f'TARGET_DEVICE_ID = "{device_id}"')
+                
+                with open(script_dest, "w") as f:
+                    f.write(custom_content)
+                logger.info(f"📱 Script personnalisé avec l'ID {device_id} pour {user}")
+            except Exception as e:
+                logger.error(f"❌ Erreur personnalisation script pour {user}: {e}")
+        elif not device_id:
+            logger.warning(f"⚠️ Variable DEVICEID_{user.upper()} manquante.")
+
+        # Enregistrement du chemin pour Alexa [cite: 1]
         PATHS[user] = {
             "cwd": user_dir,
             "script": "ring_my_phone.py"
         }
 
-# Lancement de l'initialisation au chargement du script
+# Lancement de l'initialisation au chargement du script [cite: 1]
 initialize_environment()
 
 class LaunchRequestHandler(AbstractRequestHandler):
@@ -85,6 +107,7 @@ class LaunchRequestHandler(AbstractRequestHandler):
     
     def handle(self, handler_input):
         logger.debug("--- LaunchRequest reçue ---")
+        # Alexa énumère les noms configurés dynamiquement [cite: 1]
         names_str = " ou ".join([name.capitalize() for name in USERS_LIST])
         txt = f"Bienvenue dans la localisation de téléphone. Qui voulez-vous faire sonner ? {names_str} ?"
         return handler_input.response_builder.speak(txt).ask(txt).response
@@ -101,12 +124,12 @@ class FindPhoneIntentHandler(AbstractRequestHandler):
         owner_slot = slots.get("Owner")
         target_key = None
         
-        # Résolution du nom via les slots Alexa
+        # Résolution du nom via les slots Alexa [cite: 1]
         if owner_slot and owner_slot.resolutions and owner_slot.resolutions.resolutions_per_authority:
             if owner_slot.resolutions.resolutions_per_authority[0].status.code == "ER_SUCCESS_MATCH":
                 target_key = owner_slot.resolutions.resolutions_per_authority[0].values[0].value.name.lower()
         
-        # Fallback sur la valeur brute ou le premier utilisateur
+        # Fallback sur la valeur brute ou le premier utilisateur [cite: 1]
         if not target_key:
             target_key = owner_slot.value.lower() if (owner_slot and owner_slot.value) else USERS_LIST[0]
 
@@ -122,7 +145,7 @@ class FindPhoneIntentHandler(AbstractRequestHandler):
                 ).response
             
             try:
-                # Exécution du script de localisation
+                # Exécution du script de localisation [cite: 1]
                 process = subprocess.run(
                     [sys.executable, config["script"]], 
                     cwd=config["cwd"],
@@ -176,4 +199,5 @@ def health():
     return "OK"
 
 if __name__ == '__main__':
+    # Écoute sur le port 3000 (standard pour notre Docker) [cite: 1]
     app.run(host='0.0.0.0', port=3000, debug=False)
