@@ -9,7 +9,6 @@ from flask import Flask
 from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.dispatch_components import AbstractRequestHandler, AbstractExceptionHandler
 from ask_sdk_core.utils import is_request_type, is_intent_name
-# Import corrigé pour la sécurité v1.1
 from flask_ask_sdk.skill_adapter import SkillAdapter
 
 # --- BANNIÈRE DE DÉMARRAGE ---
@@ -21,9 +20,10 @@ def show_startup_banner():
  👤 Author      : Richard Perez (ripleyXLR8)
  ✉️  Email       : richard@perez-mail.fr
  🌐 GitHub      : https://github.com/ripleyXLR8/find-my-phone-alexa-skill
- 📦 Version     : 1.1.0
+ 📦 Version     : 1.2.0
  ⚙️  Environment : Unraid / Docker (Stateless)
  🔒 Security    : Amazon Signature Verification Enabled
+ 🩺 Healthcheck : Active
  🚀 Port        : 3000
 ===================================================================
     """
@@ -35,13 +35,13 @@ show_startup_banner()
 BASE_DIR = os.getenv("BASE_DIR", "/config")
 USERS_ENV = os.getenv("USERS", "richard,lea")
 USERS_LIST = [u.strip().lower() for u in USERS_ENV.split(",")]
-TOOLS_VERSION = os.getenv("TOOLS_VERSION", "main")
+# Valeur par défaut fixée sur un commit stable plutôt que "main"
+TOOLS_VERSION = os.getenv("TOOLS_VERSION", "4eaeb13")
 ALEXA_SKILL_ID = os.getenv("ALEXA_SKILL_ID")
 REPO_URL = "https://github.com/leonboe1/GoogleFindMyTools.git"
 
 PATHS = {}
 
-# CONFIGURATION LOGGING
 logging.basicConfig(
     level=logging.DEBUG, 
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -49,7 +49,6 @@ logging.basicConfig(
 logger = logging.getLogger("AlexaSkill")
 
 def initialize_environment():
-    """Initialise les dossiers, outils, secrets et personnalise les scripts."""
     template_path = "/app/ring_my_phone.py.template"
 
     if not ALEXA_SKILL_ID:
@@ -66,7 +65,7 @@ def initialize_environment():
             try:
                 subprocess.run(["git", "clone", REPO_URL, user_dir], check=True)
                 subprocess.run(["git", "checkout", TOOLS_VERSION], cwd=user_dir, check=True)
-                logger.info(f"✅ Outil installé ({TOOLS_VERSION}) pour {user}")
+                logger.info(f"✅ Outil installé (Commit: {TOOLS_VERSION}) pour {user}")
             except subprocess.CalledProcessError as e:
                 logger.error(f"❌ Erreur Git pour {user}: {e}")
 
@@ -102,7 +101,6 @@ def initialize_environment():
 initialize_environment()
 
 def run_ring_script(config, target_key):
-    """Exécute le script de localisation en arrière-plan."""
     logger.info(f"▶️ Exécution du script pour {target_key}")
     try:
         process = subprocess.run(
@@ -141,7 +139,6 @@ class FindPhoneIntentHandler(AbstractRequestHandler):
 
         if target_key in PATHS:
             config = PATHS[target_key]
-            # Lancement asynchrone pour éviter le timeout Alexa
             threading.Thread(target=run_ring_script, args=(config, target_key)).start()
             speak_output = f"C'est fait, je lance la recherche du téléphone de {target_key}."
         else:
@@ -163,16 +160,16 @@ skill_builder.add_request_handler(FindPhoneIntentHandler())
 skill_builder.add_exception_handler(CatchAllExceptionHandler())
 skill = skill_builder.create()
 
-# Adaptateur pour sécuriser les requêtes entrantes
 skill_adapter = SkillAdapter(skill=skill, skill_id=ALEXA_SKILL_ID, app=app)
 
 @app.route("/", methods=['POST'])
 def invoke_skill():
     return skill_adapter.dispatch_request()
 
+# Cette route répond "OK" au Healthcheck Docker
 @app.route("/health", methods=['GET'])
 def health():
-    return "OK"
+    return "OK", 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000, debug=False)
