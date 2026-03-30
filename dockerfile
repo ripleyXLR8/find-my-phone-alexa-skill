@@ -31,10 +31,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copie du code source du middleware
 # Note : server.py est à la racine de votre dépôt GitHub
-COPY server.py .
+COPY src/server.py .
 
 # Préparation du template pour la personnalisation automatique des scripts utilisateurs
-COPY ring_my_phone.py ./ring_my_phone.py.template
+COPY src/ring_my_phone.py ./ring_my_phone.py.template
 
 # Création du point de montage pour la persistance Unraid
 RUN mkdir /config
