@@ -4,13 +4,32 @@ import subprocess
 import sys
 import json
 import shutil
-import threading # <-- NOUVEL IMPORT POUR L'ASYNCHRONE
+import threading
 from flask import Flask, request
 from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.dispatch_components import AbstractRequestHandler, AbstractExceptionHandler
 from ask_sdk_core.utils import is_request_type, is_intent_name
 from ask_sdk_model import RequestEnvelope
 from ask_sdk_core.serialize import DefaultSerializer
+
+# --- BANNIÈRE DE DÉMARRAGE ---
+def show_startup_banner():
+    banner = """
+===================================================================
+ 📱 ALEXA - FIND MY PHONE MIDDLEWARE
+===================================================================
+ 👤 Author      : Richard Perez (ripleyXLR8)
+ ✉️  Email       : richard@perez-mail.fr
+ 🌐 GitHub      : https://github.com/ripleyXLR8/find-my-phone-alexa-skill
+ 📦 Version     : 1.0.0
+ ⚙️  Environment : Unraid / Docker (Stateless)
+ 🚀 Port        : 3000
+===================================================================
+    """
+    print(banner, flush=True)
+
+# Affichage immédiat dans les logs Docker
+show_startup_banner()
 
 # --- CONFIGURATION DYNAMIQUE ---
 # BASE_DIR pointe vers /config, mappé au dossier appdata d'Unraid
@@ -106,8 +125,7 @@ def initialize_environment():
 # Lancement de l'initialisation au chargement du script
 initialize_environment()
 
-
-# --- NOUVELLE FONCTION : Exécution en arrière-plan ---
+# --- FONCTION : Exécution en arrière-plan ---
 def run_ring_script(config, target_key):
     """Exécute le script de localisation sans bloquer le serveur Flask."""
     logger.info(f"▶️ Début de la tâche en arrière-plan pour {target_key}")
@@ -175,8 +193,7 @@ class FindPhoneIntentHandler(AbstractRequestHandler):
                     f"Erreur : le script de sonnerie est absent pour {target_key}."
                 ).response
             
-            # --- MODIFICATION : Lancement asynchrone (Threading) ---
-            # On lance le thread et on n'attend pas sa réponse
+            # Lancement asynchrone (Threading)
             threading.Thread(target=run_ring_script, args=(config, target_key)).start()
             
             # Réponse vocale immédiate pour Alexa (< 1 seconde)
