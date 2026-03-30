@@ -9,7 +9,7 @@ ENV BASE_DIR="/config"
 # Définition du répertoire de travail
 WORKDIR /app
 
-# Installation des dépendances Python (Placé avant l'installation système pour optimiser le cache)
+# Installation des dépendances Python en premier pour optimiser le cache Docker
 COPY requirements.txt .
 
 # Installation des paquets système, de Tini, compilation Python, puis nettoyage immédiat
@@ -38,6 +38,11 @@ RUN mkdir /config
 
 # Exposition du port utilisé par Flask pour la skill Alexa
 EXPOSE 3000
+
+# 🩺 Healthcheck Docker (Surveillance de l'état de santé du conteneur)
+# Vérifie toutes les 30 secondes si Flask répond en moins de 10s.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
 
 # Utilisation de Tini comme point d'entrée pour gérer correctement les signaux d'arrêt d'Unraid
 ENTRYPOINT ["/usr/bin/tini", "--"]
