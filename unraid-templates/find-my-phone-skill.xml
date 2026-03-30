@@ -21,7 +21,7 @@
   </Overview>
   <Category>HomeAutomation: Status:Stable</Category>
   <WebUI/>
-  <Icon>https://raw.githubusercontent.com/TON_USER_GITHUB/find-my-phone-alexa-skill/main/icon.png</Icon>
+  <Icon>https://raw.githubusercontent.com/ripleyXLR8/find-my-phone-alexa-skill/main/find-my-phone-icon.png</Icon>
   
   <Config Name="Port Skill Alexa" Target="3000" Default="3000" Mode="tcp" Description="Port interne utilisé par le serveur Flask" Type="Port" Display="always" Required="true" Mask="false"/>
 
