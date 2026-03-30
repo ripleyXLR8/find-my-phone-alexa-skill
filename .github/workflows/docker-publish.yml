@@ -1,17 +1,13 @@
-name: Build and Publish Docker Image
+name: Docker Build and Publish
 
 on:
   push:
-    branches: [ "main", "master" ]
-    # Ne déclenche pas le build pour des changements mineurs de doc
-    paths-ignore:
-      - 'README.md'
-      - 'unraid-templates/**'
-      - 'find-my-phone-icon.png'
-      - '.gitignore'
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
 env:
   REGISTRY: ghcr.io
-  # Utilise le nom du dépôt (ex: ripleyxlr8/find-my-phone-alexa-skill)
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
@@ -19,13 +15,17 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write # Nécessaire pour pousser sur GHCR
+      packages: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Buildx est requis pour utiliser le cache type=gha
+      # 🐧 NOUVEAU : Installe QEMU pour émuler l'architecture ARM sur le serveur GitHub (x86)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 🏗️ NOUVEAU : Installe Docker Buildx, le moteur capable de compiler en multi-arch
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -41,17 +41,15 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
-            type=sha,format=short
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Cache intelligent : évite de réinstaller Chromium/Selenium à chaque fois
+          # 🚀 NOUVEAU : C'est ici que la magie opère ! On compile pour PC/NAS standard ET pour Raspberry Pi
+          platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
