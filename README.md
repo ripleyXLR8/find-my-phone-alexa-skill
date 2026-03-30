@@ -26,7 +26,7 @@ A self-hosted **Alexa Skill middleware** designed specifically for the **Unraid*
 
 ### 1. Prerequisites
 * An **Alexa Skill** created on the [Amazon Developer Console](https://developer.amazon.com/alexa/console/ask).
-* An HTTPS endpoint (using **Nginx Proxy Manager**, **Cloudflare Tunnels**, or similar) pointing to your Unraid server on port `3000`.
+* A secure HTTPS endpoint pointing to your Unraid server on port `3000`. **We highly recommend using a Cloudflare Tunnel** (see the Network section below).
 
 ### 2. Deployment
 1.  Open your Unraid WebGUI and go to the **Apps** tab.
@@ -53,11 +53,24 @@ The following environment variables can be configured within the Unraid Docker s
 | `TZ` | Sets the timezone for the container logs (e.g., `Europe/Paris`). | `Europe/Paris` |
 | `BASE_DIR` | The internal path used for script discovery. **Note:** This is mapped to `/config` by default. | `/config` |
 
-### Network & Connectivity
+---
 
-* **Port**: The Flask server listens on port **3000**.
-* **Access**: To communicate with Amazon Alexa, this port must be accessible via an HTTPS endpoint (e.g., via Nginx Proxy Manager or a similar reverse proxy).
-* **Unraid Network**: While the default is `bridge`, you can assign a dedicated IP using the `br0` network if preferred.
+## 🌐 Network & Connectivity (Cloudflare Tunnel Recommended)
+
+Amazon Alexa **requires** a valid HTTPS endpoint to communicate with your self-hosted skill. 
+
+Instead of opening ports on your router, we strongly recommend using a **Cloudflare Tunnel** (`cloudflared` container on Unraid) to securely route traffic to this container.
+
+**How to set it up:**
+1. Install the `cloudflared` container on your Unraid server.
+2. Go to your Cloudflare Zero Trust Dashboard.
+3. Under **Access > Tunnels**, select your Unraid tunnel and add a new **Public Hostname** (e.g., `alexa.yourdomain.com`).
+4. Set the **Service** to route to your container:
+   * **Type:** `HTTP`
+   * **URL:** `<Your-Unraid-IP>:3000` (e.g., `192.168.1.100:3000`)
+5. In the Amazon Alexa Developer Console, set your endpoint to `https://alexa.yourdomain.com`.
+
+*Note: You can also use Nginx Proxy Manager, Traefik, or any other reverse proxy that provides SSL termination.*
 
 ---
 
