@@ -9,7 +9,7 @@ from ask_sdk_core.dispatch_components import AbstractRequestHandler, AbstractExc
 from ask_sdk_core.utils import is_request_type, is_intent_name
 from flask_ask_sdk.skill_adapter import SkillAdapter
 
-# 🚀 FIX SENIOR : Import direct du module ring_my_phone (pas de subprocess)
+# 🚀 FIX SENIOR : Import direct du module ring_my_phone
 from ring_my_phone import send_ring_command
 
 # --- DICTIONNAIRE MULTILINGUE (i18n) ---
@@ -37,7 +37,7 @@ def get_msg(handler_input, key, **kwargs):
     msg = I18N.get(lang, I18N["fr"]).get(key, "")
     return msg.format(**kwargs) if kwargs else msg
 
-# --- BANNIÈRE DE DÉMARRAGE (Restaurée et Upgradée) ---
+# --- BANNIÈRE DE DÉMARRAGE ---
 def show_startup_banner():
     banner = """
 ===================================================================
@@ -66,23 +66,23 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger("AlexaSkill")
 
 def initialize_environment():
-    """Initialise les dossiers et les secrets au démarrage."""
+    """Initialise les dossiers et les secrets au démarrage sans cloner au runtime."""
     for user in USERS_LIST:
         user_dir = os.path.join(BASE_DIR, f"google-{user}")
         auth_dir = os.path.join(user_dir, "Auth")
         
-        # Copie de la source interne (Build-time) vers le dossier persistant
+        # Copie de la source interne vers le dossier persistant
         if not os.path.exists(user_dir):
             logger.info(f"📁 Initialisation des outils pour {user}...")
             shutil.copytree(SOURCE_TOOLS, user_dir)
         
         os.makedirs(auth_dir, exist_ok=True)
         
-        # Injection du secret depuis la variable d'env
+        # Injection du secret
         secret_content = os.getenv(f"SECRET_{user.upper()}")
         if secret_content:
             try:
-                json.loads(secret_content) # Vérification format JSON
+                json.loads(secret_content)
                 with open(os.path.join(auth_dir, "secrets.json"), "w") as f:
                     f.write(secret_content)
                 logger.info(f"🔑 Secret injecté pour {user}")
@@ -93,12 +93,12 @@ initialize_environment()
 
 # --- LOGIQUE DE SONNERIE ---
 def async_ring(user, device_id):
-    """Exécute la sonnerie nativement dans un thread séparé."""
+    """Exécute la sonnerie nativement dans un thread."""
     user_dir = os.path.join(BASE_DIR, f"google-{user}")
     original_cwd = os.getcwd()
     
     try:
-        # 🚀 FIX SENIOR : On change de répertoire pour que le module trouve ses secrets locaux
+        # On se déplace dans le dossier de l'utilisateur pour trouver ses secrets locaux
         os.chdir(user_dir)
         logger.info(f"▶️ Appel natif du module Google pour {user}")
         if send_ring_command(device_id):
@@ -131,7 +131,7 @@ class FindPhoneIntentHandler(AbstractRequestHandler):
         device_id = os.getenv(f"DEVICEID_{target_key.upper()}")
 
         if target_key in USERS_LIST and device_id:
-            # 🚀 FIX SENIOR : Lancement du thread direct sans subprocess
+            # Lancement direct dans un thread
             threading.Thread(target=async_ring, args=(target_key, device_id)).start()
             speak_output = get_msg(handler_input, "success", target_key=target_key.capitalize())
         else:
@@ -152,6 +152,7 @@ skill_builder.add_request_handler(LaunchRequestHandler())
 skill_builder.add_request_handler(FindPhoneIntentHandler())
 skill_builder.add_exception_handler(CatchAllExceptionHandler())
 
+# Adaptateur sécurisé
 skill_adapter = SkillAdapter(skill=skill_builder.create(), skill_id=ALEXA_SKILL_ID, app=app)
 
 @app.route("/", methods=['POST'])
