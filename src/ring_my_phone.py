@@ -1,14 +1,14 @@
 import os
 import logging
 
-# On importe les composants de l'outil Google (pré-installé dans l'image via PYTHONPATH)
+# On importe les composants de l'outil Google (pré-installés dans l'image via PYTHONPATH)
 try:
     from NovaApi.ExecuteAction.PlaySound.start_sound_request import start_sound_request
     from NovaApi.nova_request import nova_request
     from NovaApi.scopes import NOVA_ACTION_API_SCOPE
     from Auth.fcm_receiver import FcmReceiver
 except ImportError:
-    # Fallback pour le développement local si les outils ne sont pas dans le PATH
+    # Fallback pour le développement local
     pass
 
 logger = logging.getLogger("AlexaSkill.RingModule")
