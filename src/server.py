@@ -34,8 +34,7 @@ def get_msg(handler_input, key, **kwargs):
     locale = handler_input.request_envelope.request.locale
     lang = locale.split('-')[0] if locale else "fr"
     if lang not in I18N:
-        lang = "fr" # Fallback en français
-    
+        lang = "fr"
     msg = I18N[lang].get(key, "")
     return msg.format(**kwargs) if kwargs else msg
 
@@ -43,16 +42,13 @@ def get_msg(handler_input, key, **kwargs):
 def show_startup_banner():
     banner = """
 ===================================================================
- 📱 ALEXA - FIND MY PHONE MIDDLEWARE
+ 📱 ALEXA - FIND MY PHONE (V2.0 - BUILD-TIME READY)
 ===================================================================
  👤 Author      : Richard Perez (ripleyXLR8)
- ✉️  Email       : richard@perez-mail.fr
- 🌐 GitHub      : https://github.com/ripleyXLR8/find-my-phone-alexa-skill
- 📦 Version     : 1.3.0
+ 📦 Version     : 2.0.0 (Senior Fix Step 1)
  ⚙️  Environment : Unraid / Docker (Stateless)
  🔒 Security    : Amazon Signature Verification Enabled
- 🌍 Multi-Lang  : Active (FR / EN)
- 🚀 Port        : 3000
+ 🚀 Status      : GoogleTools pre-installed in image
 ===================================================================
     """
     print(banner, flush=True)
@@ -63,9 +59,9 @@ show_startup_banner()
 BASE_DIR = os.getenv("BASE_DIR", "/config")
 USERS_ENV = os.getenv("USERS", "richard,lea")
 USERS_LIST = [u.strip().lower() for u in USERS_ENV.split(",")]
-TOOLS_VERSION = os.getenv("TOOLS_VERSION", "0003116")
 ALEXA_SKILL_ID = os.getenv("ALEXA_SKILL_ID")
-REPO_URL = "https://github.com/leonboe1/GoogleFindMyTools.git"
+# Chemin de la source pré-clonée dans le Dockerfile
+SOURCE_TOOLS = "/app/google_tools" 
 
 PATHS = {}
 
@@ -76,26 +72,18 @@ logging.basicConfig(
 logger = logging.getLogger("AlexaSkill")
 
 def initialize_environment():
+    """Initialise les dossiers en copiant la source interne (Senior Fix)."""
     template_path = "/app/ring_my_phone.py.template"
-
-    if not ALEXA_SKILL_ID:
-        logger.warning("⚠️ ALEXA_SKILL_ID non défini. La vérification de l'ID est désactivée.")
 
     for user in USERS_LIST:
         user_dir = os.path.join(BASE_DIR, f"google-{user}")
         auth_dir = os.path.join(user_dir, "Auth")
         
-        if not os.path.exists(os.path.join(user_dir, ".git")):
-            logger.info(f"📥 Téléchargement de GoogleFindMyTools pour {user}...")
-            if os.path.exists(user_dir):
-                shutil.rmtree(user_dir)
-            try:
-                subprocess.run(["git", "clone", REPO_URL, user_dir], check=True)
-                subprocess.run(["git", "checkout", TOOLS_VERSION], cwd=user_dir, check=True)
-                logger.info(f"✅ Outil installé (Commit: {TOOLS_VERSION}) pour {user}")
-            except subprocess.CalledProcessError as e:
-                logger.error(f"❌ Erreur Git pour {user}: {e}")
-
+        # 🚀 FIX SENIOR : On copie depuis l'image au lieu de cloner depuis le web
+        if not os.path.exists(user_dir):
+            logger.info(f"📁 Initialisation des outils pour {user} depuis la source interne...")
+            shutil.copytree(SOURCE_TOOLS, user_dir)
+        
         os.makedirs(auth_dir, exist_ok=True)
         secret_env_name = f"SECRET_{user.upper()}"
         secret_content = os.getenv(secret_env_name)
@@ -119,7 +107,7 @@ def initialize_environment():
                 custom_content = content.replace('TARGET_DEVICE_ID = "REPLACE_ME_DEVICE_ID"', f'TARGET_DEVICE_ID = "{device_id}"')
                 with open(script_dest, "w") as f:
                     f.write(custom_content)
-                logger.info(f"📱 Script personnalisé (ID: {device_id}) pour {user}")
+                logger.info(f"📱 Script personnalisé pour {user}")
             except Exception as e:
                 logger.error(f"❌ Erreur script pour {user}: {e}")
 
@@ -128,6 +116,7 @@ def initialize_environment():
 initialize_environment()
 
 def run_ring_script(config, target_key):
+    """Exécute le script de localisation."""
     logger.info(f"▶️ Exécution du script pour {target_key}")
     try:
         process = subprocess.run(
