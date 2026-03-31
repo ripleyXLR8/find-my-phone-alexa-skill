@@ -17,6 +17,7 @@ A self-hosted **Alexa Skill middleware** designed specifically for the **Unraid*
 
 * **One-Click Install**: Fully compatible with Unraid's Community Applications (CA).
 * **Multi-Architecture Support**: Built for both `x86_64` (Standard PCs/Servers) and `ARM64` (Raspberry Pi, CasaOS, Mac M1/M2).
+* **Native Multi-Language (i18n)**: Automatically detects Alexa's locale to respond dynamically in French or English.
 * **100% Stateless & Automated**: The container automatically downloads tools, creates folders, and customizes your scripts using Environment Variables.
 * **Rock-Solid Stability (v1.2)**: Integrated Docker Healthcheck for continuous monitoring in Unraid, and locked the `GoogleFindMyTools` dependency to a specific stable commit (`0003116`) to prevent upstream breaking changes.
 * **Secure & Reliable (v1.1)**: Built-in Amazon Signature Verification to reject unauthorized requests, and asynchronous background execution to prevent Alexa 8-second timeouts.
@@ -83,7 +84,7 @@ You need to create a custom Alexa Skill to receive your voice commands and forwa
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
-| `ALEXA_SKILL_ID` | **[NEW in v1.1]** Your Alexa Skill ID (`amzn1.ask.skill...`). Required for request signature verification & security. | `None` |
+| `ALEXA_SKILL_ID` | Your Alexa Skill ID (`amzn1.ask.skill...`). Required for request signature verification & security. | `None` |
 | `USERS` | Comma-separated list of users (e.g., richard,lea). | `richard,lea` |
 | `SECRET_[USER]` | The full JSON content of your locally generated `secrets.json` for that user (e.g., `SECRET_RICHARD`). | `None` |
 | `DEVICEID_[USER]` | The target Google device ID to ring for that user (e.g., `DEVICEID_RICHARD`). | `None` |
