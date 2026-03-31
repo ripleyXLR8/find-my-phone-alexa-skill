@@ -1,38 +1,33 @@
-# Fichier: ring_my_phone.py
-import sys
-import asyncio
+import os
+import logging
+
+# On importe les composants de l'outil Google (pré-installé dans l'image)
 from NovaApi.ExecuteAction.PlaySound.start_sound_request import start_sound_request
 from NovaApi.nova_request import nova_request
 from NovaApi.scopes import NOVA_ACTION_API_SCOPE
 from Auth.fcm_receiver import FcmReceiver
 
-# Ce marqueur sera remplacé par le serveur au démarrage via la variable DEVICEID_[USER]
-TARGET_DEVICE_ID = "REPLACE_ME_DEVICE_ID" 
+logger = logging.getLogger("AlexaSkill.RingModule")
 
-def ring():
-    """Déclenche la sonnerie sur l'appareil Google cible."""
-    print(f"Tentative de sonnerie sur : {TARGET_DEVICE_ID}")
-    
-    # Initialisation du récepteur FCM pour récupérer les jetons d'authentification
-    fcm = FcmReceiver()
-    
-    # Chargement forcé des identifiants s'ils ne sont pas présents
-    if fcm.credentials is None:
-        fcm.get_android_id()
-        
-    # Extraction du jeton d'enregistrement GCM nécessaire pour la requête Google
-    gcm_id = fcm.credentials['fcm']['registration']['token']
-
-    # Construction de la charge utile (payload) pour la requête de sonnerie
-    hex_payload = start_sound_request(TARGET_DEVICE_ID, gcm_id)
-    
-    # Envoi de la commande de sonnerie via l'API Nova de Google
-    nova_request(NOVA_ACTION_API_SCOPE, hex_payload)
-    print("Commande envoyée avec succès.")
-
-if __name__ == '__main__':
+def send_ring_command(device_id):
+    """
+    Logique native pour déclencher la sonnerie.
+    L'appelant doit s'assurer d'être dans le bon répertoire pour trouver secrets.json.
+    """
     try:
-        ring()
+        fcm = FcmReceiver()
+        
+        # Initialisation des identifiants Google
+        if fcm.credentials is None:
+            fcm.get_android_id()
+            
+        gcm_id = fcm.credentials['fcm']['registration']['token']
+
+        # Préparation et envoi de la requête
+        hex_payload = start_sound_request(device_id, gcm_id)
+        nova_request(NOVA_ACTION_API_SCOPE, hex_payload)
+        
+        return True
     except Exception as e:
-        print(f"Erreur lors de l'exécution du script de sonnerie : {e}")
-        sys.exit(1)
+        logger.error(f"Erreur lors de l'appel à l'API Google : {e}")
+        return False
