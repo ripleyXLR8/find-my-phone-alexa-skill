@@ -11,6 +11,34 @@ from ask_sdk_core.dispatch_components import AbstractRequestHandler, AbstractExc
 from ask_sdk_core.utils import is_request_type, is_intent_name
 from flask_ask_sdk.skill_adapter import SkillAdapter
 
+# --- DICTIONNAIRE MULTILINGUE (i18n) ---
+I18N = {
+    "fr": {
+        "welcome": "Bienvenue dans la localisation de téléphone. Qui voulez-vous faire sonner ? {names} ?",
+        "success": "C'est fait, je lance la recherche du téléphone de {target_key}.",
+        "not_configured": "Désolé, l'utilisateur {target_key} n'est pas configuré.",
+        "error": "Une erreur système est survenue.",
+        "or_word": " ou "
+    },
+    "en": {
+        "welcome": "Welcome to phone locator. Whose phone do you want to ring? {names}?",
+        "success": "Done, I am ringing {target_key}'s phone.",
+        "not_configured": "Sorry, user {target_key} is not configured.",
+        "error": "A system error has occurred.",
+        "or_word": " or "
+    }
+}
+
+def get_msg(handler_input, key, **kwargs):
+    """Récupère le message traduit en fonction de la locale d'Alexa."""
+    locale = handler_input.request_envelope.request.locale
+    lang = locale.split('-')[0] if locale else "fr"
+    if lang not in I18N:
+        lang = "fr" # Fallback en français
+    
+    msg = I18N[lang].get(key, "")
+    return msg.format(**kwargs) if kwargs else msg
+
 # --- BANNIÈRE DE DÉMARRAGE ---
 def show_startup_banner():
     banner = """
@@ -20,10 +48,10 @@ def show_startup_banner():
  👤 Author      : Richard Perez (ripleyXLR8)
  ✉️  Email       : richard@perez-mail.fr
  🌐 GitHub      : https://github.com/ripleyXLR8/find-my-phone-alexa-skill
- 📦 Version     : 1.2.0
+ 📦 Version     : 1.3.0
  ⚙️  Environment : Unraid / Docker (Stateless)
  🔒 Security    : Amazon Signature Verification Enabled
- 🩺 Healthcheck : Active
+ 🌍 Multi-Lang  : Active (FR / EN)
  🚀 Port        : 3000
 ===================================================================
     """
@@ -35,8 +63,7 @@ show_startup_banner()
 BASE_DIR = os.getenv("BASE_DIR", "/config")
 USERS_ENV = os.getenv("USERS", "richard,lea")
 USERS_LIST = [u.strip().lower() for u in USERS_ENV.split(",")]
-# Valeur par défaut fixée sur un commit stable plutôt que "main"
-TOOLS_VERSION = os.getenv("TOOLS_VERSION", "4eaeb13")
+TOOLS_VERSION = os.getenv("TOOLS_VERSION", "0003116")
 ALEXA_SKILL_ID = os.getenv("ALEXA_SKILL_ID")
 REPO_URL = "https://github.com/leonboe1/GoogleFindMyTools.git"
 
@@ -118,8 +145,9 @@ class LaunchRequestHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return is_request_type("LaunchRequest")(handler_input)
     def handle(self, handler_input):
-        names_str = " ou ".join([name.capitalize() for name in USERS_LIST])
-        txt = f"Bienvenue dans la localisation de téléphone. Qui voulez-vous faire sonner ? {names_str} ?"
+        or_word = get_msg(handler_input, "or_word")
+        names_str = or_word.join([name.capitalize() for name in USERS_LIST])
+        txt = get_msg(handler_input, "welcome", names=names_str)
         return handler_input.response_builder.speak(txt).ask(txt).response
 
 class FindPhoneIntentHandler(AbstractRequestHandler):
@@ -140,9 +168,9 @@ class FindPhoneIntentHandler(AbstractRequestHandler):
         if target_key in PATHS:
             config = PATHS[target_key]
             threading.Thread(target=run_ring_script, args=(config, target_key)).start()
-            speak_output = f"C'est fait, je lance la recherche du téléphone de {target_key}."
+            speak_output = get_msg(handler_input, "success", target_key=target_key.capitalize())
         else:
-            speak_output = f"L'utilisateur {target_key} n'est pas configuré."
+            speak_output = get_msg(handler_input, "not_configured", target_key=target_key.capitalize())
             
         return handler_input.response_builder.speak(speak_output).response
 
@@ -151,7 +179,8 @@ class CatchAllExceptionHandler(AbstractExceptionHandler):
         return True
     def handle(self, handler_input, exception):
         logger.error(exception, exc_info=True)
-        return handler_input.response_builder.speak("Une erreur système est survenue.").response
+        speak_output = get_msg(handler_input, "error")
+        return handler_input.response_builder.speak(speak_output).response
 
 app = Flask(__name__)
 skill_builder = SkillBuilder()
@@ -166,7 +195,6 @@ skill_adapter = SkillAdapter(skill=skill, skill_id=ALEXA_SKILL_ID, app=app)
 def invoke_skill():
     return skill_adapter.dispatch_request()
 
-# Cette route répond "OK" au Healthcheck Docker
 @app.route("/health", methods=['GET'])
 def health():
     return "OK", 200
