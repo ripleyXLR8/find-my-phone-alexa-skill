@@ -9,8 +9,11 @@ COPY requirements.txt .
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tini git wget gnupg unzip curl chromium chromium-driver build-essential libffi-dev \
     && pip install --no-cache-dir -r requirements.txt \
-    # 🚀 FIX SENIOR : Clonage au BUILD pour l'autonomie totale
+    # 🚀 FIX : On clone ET on force le checkout sur le commit stable 0003116
     && git clone https://github.com/leonboe1/GoogleFindMyTools.git /app/google_tools \
+    && cd /app/google_tools \
+    && git checkout 0003116 \
+    && cd /app \
     && apt-get remove -y build-essential libffi-dev \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
