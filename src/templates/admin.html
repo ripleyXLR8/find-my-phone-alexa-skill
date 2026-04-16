@@ -4,49 +4,97 @@
     <meta charset="UTF-8">
     <title>Find My Phone - Administration</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .step-box { background-color: #2b3035; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #0d6efd; }
+    </style>
 </head>
-<body class="container mt-5">
+<body class="container mt-5 mb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>📱 Find My Phone - Configuration</h1>
     </div>
 
-    <div class="card mb-4">
-        <div class="card-header">Appareils Actuels</div>
-        <ul class="list-group list-group-flush">
-            {% for user, data in users.items() %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>{{ user | capitalize }}</strong><br>
-                    <small class="text-muted">Device ID: {{ data.device_id }}</small>
-                </div>
-                <form action="{{ url_for('delete_user', username=user) }}" method="POST" onsubmit="return confirm('Supprimer cet utilisateur ?');">
-                    <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
-                </form>
-            </li>
-            {% else %}
-            <li class="list-group-item text-muted">Aucun appareil configuré.</li>
-            {% endfor %}
-        </ul>
-    </div>
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">Appareils Actuels</div>
+                <ul class="list-group list-group-flush">
+                    {% for user, data in users.items() %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ user | capitalize }}</strong><br>
+                            <small class="text-muted">Device ID: {{ data.device_id }}</small>
+                        </div>
+                        <form action="{{ url_for('delete_user', username=user) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                            <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+                        </form>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-muted">Aucun appareil configuré.</li>
+                    {% endfor %}
+                </ul>
+            </div>
 
-    <div class="card">
-        <div class="card-header bg-primary text-white">Ajouter un Appareil</div>
-        <div class="card-body">
-            <form action="{{ url_for('add_user') }}" method="POST">
-                <div class="mb-3">
-                    <label class="form-label">Nom de l'utilisateur (ex: Richard)</label>
-                    <input type="text" class="form-control" name="username" required>
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">Ajouter un Appareil</div>
+                <div class="card-body">
+                    <form action="{{ url_for('add_user') }}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nom de l'utilisateur Alexa</label>
+                            <input type="text" class="form-control" name="username" required placeholder="ex: Richard (Doit correspondre à votre Skill)">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Device ID</label>
+                            <input type="text" class="form-control" name="device_id" required placeholder="ex: 691ee847-0000-2401-ab82-fc41166d2bf9">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Secret JSON complet</label>
+                            <textarea class="form-control" name="secret_json" rows="6" required placeholder='{"aas_token": "...", "fcm_credentials": {...}}'></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Enregistrer cet appareil</button>
+                    </form>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Device ID</label>
-                    <input type="text" class="form-control" name="device_id" required>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card border-info">
+                <div class="card-header bg-info text-dark fw-bold">
+                    ℹ️ Comment obtenir mon Device ID et mon Secret ?
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Secret JSON complet</label>
-                    <textarea class="form-control" name="secret_json" rows="4" required placeholder='{"aas_token": "...", "fcm_credentials": {...}}'></textarea>
+                <div class="card-body">
+                    <p class="text-muted small">
+                        Pour des raisons de sécurité (Anti-Bot et Double Authentification), Google bloque les connexions automatisées sur les serveurs NAS. Vous devez générer ces codes une seule fois <strong>depuis votre ordinateur personnel</strong> (Windows/Mac/Linux).
+                    </p>
+
+                    <div class="step-box">
+                        <strong>Étape 1 : Préparation</strong><br>
+                        Sur votre PC, installez <a href="https://www.python.org/downloads/" target="_blank" class="text-info">Python</a> et <a href="https://git-scm.com/downloads" target="_blank" class="text-info">Git</a>.
+                    </div>
+
+                    <div class="step-box">
+                        <strong>Étape 2 : Lancement de l'outil</strong><br>
+                        Ouvrez un terminal (ou Invite de commandes) sur votre PC et tapez une par une :
+                        <pre class="bg-dark text-light p-2 mt-2 rounded small"><code>git clone https://github.com/leonboe1/GoogleFindMyTools.git
+cd GoogleFindMyTools
+pip install -r requirements.txt
+python main.py</code></pre>
+                    </div>
+
+                    <div class="step-box">
+                        <strong>Étape 3 : Connexion</strong><br>
+                        Une fenêtre Google Chrome va s'ouvrir. <strong>Connectez-vous</strong> avec le compte Google lié au téléphone que vous souhaitez faire sonner.
+                    </div>
+
+                    <div class="step-box">
+                        <strong>Étape 4 : Copier les infos</strong><br>
+                        <ul>
+                            <li><strong>Device ID :</strong> Regardez dans votre terminal, l'outil affichera la liste de vos appareils avec leurs IDs. Copiez l'ID de votre téléphone.</li>
+                            <li><strong>Secret JSON :</strong> Allez dans le dossier <code>GoogleFindMyTools/Auth/</code> sur votre PC. Ouvrez le fichier <code>secrets.json</code> avec le Bloc-notes, et copiez TOUT le texte à l'intérieur.</li>
+                        </ul>
+                    </div>
+
                 </div>
-                <button type="submit" class="btn btn-success">Ajouter l'appareil</button>
-            </form>
+            </div>
         </div>
     </div>
 </body>
