@@ -6,7 +6,7 @@ import json
 import shutil
 import threading
 from functools import wraps
-from flask import Flask, request, render_template, redirect, url_for, Response
+from flask import Flask, request, render_template, redirect, url_for, Response, flash
 from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.dispatch_components import AbstractRequestHandler, AbstractExceptionHandler
 from ask_sdk_core.utils import is_request_type, is_intent_name
@@ -64,6 +64,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger("AlexaSkill")
 
 app = Flask(__name__)
+# La secret_key est obligatoire dans Flask pour utiliser le système de notifications (flash)
+app.secret_key = "findmyphone_secret_key"
 
 # ---------------------------------------------------------
 # GESTION DES UTILISATEURS (Remplace l'ancienne approche)
@@ -157,7 +159,8 @@ def add_user():
     try:
         json.loads(secret_json)
     except ValueError:
-        return "Erreur : Le Secret n'est pas un JSON valide.", 400
+        flash("Erreur : Le Secret n'est pas un JSON valide.", "danger")
+        return redirect(url_for("admin_dashboard"))
 
     users = load_users()
     users[username] = {
@@ -168,6 +171,7 @@ def add_user():
     save_users(users)
     setup_user_environment(username, users[username])
     
+    flash(f"L'appareil pour {username.capitalize()} a été ajouté avec succès !", "success")
     return redirect(url_for("admin_dashboard"))
 
 @app.route("/admin/delete/<username>", methods=['POST'])
