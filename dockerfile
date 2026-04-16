@@ -9,7 +9,6 @@ COPY requirements.txt .
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tini git wget gnupg unzip curl chromium chromium-driver build-essential libffi-dev \
     && pip install --no-cache-dir -r requirements.txt \
-    # 🚀 FIX : On clone ET on force le checkout sur le commit stable 0003116
     && git clone https://github.com/leonboe1/GoogleFindMyTools.git /app/google_tools \
     && cd /app/google_tools \
     && git checkout 0003116 \
@@ -20,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY src/server.py .
 COPY src/ring_my_phone.py .
+COPY src/templates ./templates
 RUN mkdir /config
 EXPOSE 3000
 

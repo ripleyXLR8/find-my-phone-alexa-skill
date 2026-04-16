@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Find My Phone - Administration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📱 Find My Phone - Configuration</h1>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">Appareils Actuels</div>
+        <ul class="list-group list-group-flush">
+            {% for user, data in users.items() %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ user | capitalize }}</strong><br>
+                    <small class="text-muted">Device ID: {{ data.device_id }}</small>
+                </div>
+                <form action="{{ url_for('delete_user', username=user) }}" method="POST" onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                    <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+                </form>
+            </li>
+            {% else %}
+            <li class="list-group-item text-muted">Aucun appareil configuré.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">Ajouter un Appareil</div>
+        <div class="card-body">
+            <form action="{{ url_for('add_user') }}" method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Nom de l'utilisateur (ex: Richard)</label>
+                    <input type="text" class="form-control" name="username" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Device ID</label>
+                    <input type="text" class="form-control" name="device_id" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Secret JSON complet</label>
+                    <textarea class="form-control" name="secret_json" rows="4" required placeholder='{"aas_token": "...", "fcm_credentials": {...}}'></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Ajouter l'appareil</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
